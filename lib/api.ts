@@ -30,7 +30,29 @@ export function checkOrigin(req: Request) {
 }
 export function problem(e: unknown) {
   const err = e as { code?: string; message?: string };
+  const connectionErrors: Record<string, string> = {
+    ENOTFOUND: "Database hostname could not be resolved.",
+    ENETUNREACH: "Database network is unreachable.",
+    ETIMEDOUT: "Database connection timed out.",
+    CONNECT_TIMEOUT: "Database connection timed out.",
+    CONNECTION_CLOSED: "The database closed the connection.",
+    "28P01": "Database login was rejected.",
+    "42501": "The CRM database login lacks a required permission.",
+    "42P01": "The CRM schema is missing a required table.",
+  };
+  if (/tenant or user not found/i.test(err.message || ""))
+    return Response.json(
+      { error: "The pooler could not locate the Keystone database login." },
+      { status: 503 },
+    );
+  if (err.code && connectionErrors[err.code])
+    return Response.json(
+      { error: connectionErrors[err.code] },
+      { status: 503 },
+    );
   let msg = "Unable to save or load the workspace.";
+  if (err.code && /^[A-Z0-9_]{2,32}$/.test(err.code))
+    msg += " Reference: " + err.code + ".";
   if (err.code === "23505")
     msg =
       "A matching record already exists. Review the email or linked record.";

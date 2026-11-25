@@ -196,8 +196,16 @@ test("mobile probate inbox opens fictional evidence and run history", async ({
     .getByRole("button", { name: "DEMO-2026-00001", exact: true })
     .click();
   await expect(
+    page.getByRole("heading", { name: "Who to contact" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "attorney0@example.com" }),
+  ).toHaveAttribute("href", "mailto:attorney0@example.com");
+  await page.getByText("Case details and score", { exact: true }).click();
+  await expect(
     page.getByRole("heading", { name: "Score breakdown" }),
   ).toBeVisible();
+  await page.getByText("Sources and activity", { exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Fictional legal notice" }),
   ).toBeVisible();

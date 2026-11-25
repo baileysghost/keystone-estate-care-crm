@@ -13,6 +13,7 @@ interface Case {
   score_breakdown: Record<string, number>;
   assigned_employee_id: string | null;
   reviewed: boolean;
+  research_pending: boolean;
   archived: boolean;
   client_id: string | null;
 }
@@ -102,6 +103,37 @@ const inbox = [
   "Assigned to me",
   "Archived",
 ];
+function contactState(p: Person) {
+  if (
+    p.staff.do_not_contact ||
+    p.staff.relationship_status === "Do not contact"
+  )
+    return "Do not contact";
+  if (
+    p.data.contact_verified &&
+    (p.data.business_phone || p.data.professional_email)
+  )
+    return "Contact available";
+  return "Needs contact research";
+}
+function Channels({ person }: { person: Person }) {
+  if (contactState(person) !== "Contact available")
+    return <span className="contact-status">{contactState(person)}</span>;
+  return (
+    <div className="contact-channels">
+      {person.data.business_phone && (
+        <a href={"tel:" + person.data.business_phone.replace(/[^0-9+]/g, "")}>
+          {person.data.business_phone}
+        </a>
+      )}
+      {person.data.professional_email && (
+        <a href={"mailto:" + person.data.professional_email}>
+          {person.data.professional_email}
+        </a>
+      )}
+    </div>
+  );
+}
 function Facts({ data }: { data: Record<string, unknown> }) {
   return (
     <dl className="facts">
@@ -382,95 +414,74 @@ export default function Intelligence({ page }: { page: string }) {
       .length,
     "Converted clients": rangeCases.filter((c) => c.client_id).length,
   };
-  const table = (rows: Case[]) => {
-    const entries = rows.map((c) => {
-      const p = people(c.id)[0];
-      return {
-        c,
-        values: [
-          day(c.first_discovered_at),
-          c.data.filing_date,
-          c.data.courthouse || c.data.jurisdiction,
-          c.data.property_city,
-          c.data.real_estate_status,
-          p?.full_name,
-          p?.data.law_firm,
-          p?.data.business_phone,
-          p?.data.professional_email,
-          c.lead_score,
-          c.data.verification_status,
-          c.stage,
-          db.employees.find((e) => e.id === c.assigned_employee_id)?.name,
-          day(c.updated_at),
-        ],
-      };
-    });
-    const columns = [
-      "Discovered",
-      "Filed",
-      "Court",
-      "Property city",
-      "Real estate",
-      "Attorney",
-      "Firm",
-      "Business phone",
-      "Professional email",
-      "Score",
-      "Verification",
-      "Outreach",
-      "Assigned",
-      "Updated",
-    ]
-      .map((label, index) => ({ label, index }))
-      .filter(({ index }) =>
-        entries.some(
-          ({ values }) => values[index] != null && values[index] !== "",
-        ),
-      );
-    return (
-      <div className="probate-scroll">
-        <table>
-          <thead>
-            <tr>
-              {[
-                "Select",
-                "Case number",
-                ...columns.map(({ label }) => label),
-              ].map((s) => (
-                <th key={s}>{s}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map(({ c, values }) => {
-              return (
-                <tr key={c.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      aria-label={"Select " + c.data.case_number}
-                      checked={selected.includes(c.id)}
-                      onChange={() => toggle(c.id)}
-                    />
-                  </td>
-                  <td>
-                    <button onClick={() => V(c.id)}>
-                      {c.data.case_number}
-                    </button>{" "}
-                    {!c.reviewed && <small>New</small>}
-                  </td>
-                  {columns.map(({ index, label }) => (
-                    <td key={label}>{values[index] ?? "—"}</td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {!rows.length && <p>No matching probate cases.</p>}
-      </div>
-    );
-  };
+  const table = (rows: Case[]) => (
+    <div className="probate-scroll">
+      <table className="lead-inbox">
+        <thead>
+          <tr>
+            {["Select", "Lead", "Who to contact", "Stage"].map((label) => (
+              <th key={label}>{label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((c) => {
+            const contacts = people(c.id);
+            const first =
+              contacts.find((p) => contactState(p) === "Contact available") ||
+              contacts[0];
+            return (
+              <tr key={c.id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    aria-label={"Select " + c.data.case_number}
+                    checked={selected.includes(c.id)}
+                    onChange={() => toggle(c.id)}
+                  />
+                </td>
+                <td>
+                  <button className="case-link" onClick={() => V(c.id)}>
+                    {c.data.case_number}
+                  </button>{" "}
+                  {!c.reviewed && <small className="lead-new">New</small>}
+                  <small>
+                    {[c.data.property_city, day(c.first_discovered_at)]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </small>
+                </td>
+                <td>
+                  {first ? (
+                    <>
+                      <strong>{first.full_name}</strong>
+                      {first.data.law_firm && (
+                        <small>{first.data.law_firm}</small>
+                      )}
+                      <Channels person={first} />
+                      {contacts.length > 1 && (
+                        <button onClick={() => V(c.id)}>
+                          View all {contacts.length} contacts
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <span>
+                      {c.research_pending
+                        ? "Contact research pending"
+                        : "No contact identified"}
+                    </span>
+                  )}
+                </td>
+                <td>{c.stage}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {!rows.length && <p>No matching probate cases.</p>}
+    </div>
+  );
   return (
     <section className="panel probate">
       <div className="probate-controls">
@@ -500,64 +511,140 @@ export default function Intelligence({ page }: { page: string }) {
           <button onClick={() => V("")}>Back to list</button>
           {chosen ? (
             <>
-              <h2>{chosen.data.case_number}</h2>
-              <Facts
-                data={{
-                  ...chosen.data,
-                  first_discovered: when(chosen.first_discovered_at),
-                  last_verified: when(chosen.last_verified_at),
-                  stage: chosen.stage,
-                  lead_score: chosen.lead_score,
-                  priority:
-                    chosen.lead_score >= 85
-                      ? "High priority"
-                      : chosen.lead_score >= 65
-                        ? "Qualified"
-                        : chosen.lead_score >= 40
-                          ? "Needs research"
-                          : "Low priority",
-                }}
-              />
-              <h3>Score breakdown</h3>
-              <Facts data={chosen.score_breakdown} />
-              {people(chosen.id).map((p) => (
-                <button key={p.id} onClick={() => V(p.id)}>
-                  {p.full_name}
-                </button>
-              ))}
-              <button onClick={() => act("review")}>Mark reviewed</button>
-              {people(chosen.id).length > 1 && (
-                <select
-                  aria-label="Attorney contacted"
-                  value={recipient}
-                  onChange={(e) => Recipient(e.target.value)}
-                >
-                  <option value="">Choose attorney</option>
-                  {people(chosen.id).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.full_name}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {controls}
-              <h3>Follow-ups</h3>
-              {db.tasks
-                .filter((t) => t.case_id === detail)
-                .map((t) => (
-                  <p key={t.id}>
-                    {t.due} · {t.title}{" "}
-                    {t.completed ? (
-                      "Completed"
-                    ) : (
-                      <button
-                        onClick={() => act("task-complete", { value: t.id })}
-                      >
-                        Complete
-                      </button>
-                    )}
+              <header className="case-heading">
+                <div>
+                  <h2>{chosen.data.case_number}</h2>
+                  <p>
+                    {[chosen.data.property_city, chosen.data.jurisdiction]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </p>
+                </div>
+                <span>{chosen.stage}</span>
+              </header>
+              <section className="lead-contact">
+                <h3>Who to contact</h3>
+                {people(chosen.id).map((p) => (
+                  <div key={p.id} className="contact-person">
+                    <button className="case-link" onClick={() => V(p.id)}>
+                      {p.full_name}
+                    </button>
+                    <p>
+                      {[p.data.category, p.data.law_firm]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                    <Channels person={p} />
+                  </div>
                 ))}
+                {!people(chosen.id).length && (
+                  <p>
+                    No attorney or professional contact has been identified for
+                    this lead.
+                  </p>
+                )}
+                {(!people(chosen.id).length ||
+                  people(chosen.id).some(
+                    (p) => contactState(p) === "Needs contact research",
+                  )) &&
+                  (chosen.research_pending ? (
+                    <strong>Research request pending</strong>
+                  ) : !chosen.archived &&
+                    (admin ||
+                      (!!db.user.employee_id &&
+                        db.user.employee_id ===
+                          chosen.assigned_employee_id)) ? (
+                    <button
+                      className="contact-primary"
+                      onClick={() =>
+                        act("research", {
+                          value:
+                            "Identify the professional representing this case and verify their public business phone or email. Include a case-specific source.",
+                        })
+                      }
+                    >
+                      Request contact research
+                    </button>
+                  ) : (
+                    <small>
+                      Contact an administrator for assignment before requesting
+                      research.
+                    </small>
+                  ))}
+              </section>
+              <div className="review-line">
+                <span>
+                  {db.employees.find(
+                    (e) => e.id === chosen.assigned_employee_id,
+                  )?.name || "Unassigned"}{" "}
+                  · Discovered {day(chosen.first_discovered_at)}
+                </span>
+                {chosen.reviewed ? (
+                  <span>Reviewed</span>
+                ) : (
+                  <button onClick={() => act("review")}>Mark reviewed</button>
+                )}
+              </div>
+              <details className="lead-fold">
+                <summary>Manage lead</summary>
+                {people(chosen.id).length > 1 && (
+                  <select
+                    aria-label="Attorney contacted"
+                    value={recipient}
+                    onChange={(e) => Recipient(e.target.value)}
+                  >
+                    <option value="">Choose attorney</option>
+                    {people(chosen.id).map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.full_name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {controls}
+              </details>
+              <details className="lead-fold">
+                <summary>Case details and score</summary>
+                <Facts
+                  data={{
+                    ...chosen.data,
+                    first_discovered: when(chosen.first_discovered_at),
+                    last_verified: when(chosen.last_verified_at),
+                    lead_score: chosen.lead_score,
+                  }}
+                />
+                <h3>Score breakdown</h3>
+                <Facts data={chosen.score_breakdown} />
+              </details>
+              <details className="lead-fold">
+                <summary>
+                  Follow-ups (
+                  {
+                    db.tasks.filter((t) => t.case_id === detail && !t.completed)
+                      .length
+                  }{" "}
+                  open)
+                </summary>
+                {!db.tasks.some((t) => t.case_id === detail) && (
+                  <p>No follow-ups scheduled.</p>
+                )}
+                {db.tasks
+                  .filter((t) => t.case_id === detail)
+                  .map((t) => (
+                    <p key={t.id}>
+                      {t.due} · {t.title}{" "}
+                      {t.completed ? (
+                        "Completed"
+                      ) : (
+                        <button
+                          onClick={() => act("task-complete", { value: t.id })}
+                        >
+                          Complete
+                        </button>
+                      )}
+                    </p>
+                  ))}
+              </details>
             </>
           ) : person ? (
             <>
@@ -696,31 +783,35 @@ export default function Intelligence({ page }: { page: string }) {
               />
             </>
           ) : null}
-          {db.sources
-            .filter((s) => s.case_id === detail || s.attorney_id === detail)
-            .map((s) => (
-              <p key={s.source_url}>
-                <a href={s.source_url} target="_blank" rel="noreferrer">
-                  {s.data.source_name}
-                </a>{" "}
-                · Retrieved {when(s.date_retrieved)}
-              </p>
-            ))}
-          {db.activity
-            .filter(
-              (a) =>
-                a.case_id === detail ||
-                a.attorney_id === detail ||
-                (firm &&
-                  db.attorneys.some(
-                    (p) => p.law_firm_id === firm.id && p.id === a.attorney_id,
-                  )),
-            )
-            .map((a) => (
-              <p key={a.id}>
-                {when(a.created_at)} · {a.actor} · {a.action} {a.detail}
-              </p>
-            ))}
+          <details className="lead-fold" key={detail}>
+            <summary>Sources and activity</summary>
+            {db.sources
+              .filter((s) => s.case_id === detail || s.attorney_id === detail)
+              .map((s) => (
+                <p key={s.source_url}>
+                  <a href={s.source_url} target="_blank" rel="noreferrer">
+                    {s.data.source_name}
+                  </a>{" "}
+                  · Retrieved {when(s.date_retrieved)}
+                </p>
+              ))}
+            {db.activity
+              .filter(
+                (a) =>
+                  a.case_id === detail ||
+                  a.attorney_id === detail ||
+                  (firm &&
+                    db.attorneys.some(
+                      (p) =>
+                        p.law_firm_id === firm.id && p.id === a.attorney_id,
+                    )),
+              )
+              .map((a) => (
+                <p key={a.id}>
+                  {when(a.created_at)} · {a.actor} · {a.action} {a.detail}
+                </p>
+              ))}
+          </details>
         </>
       ) : page === "Overview" ? (
         <>

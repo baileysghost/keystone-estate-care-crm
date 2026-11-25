@@ -1,6 +1,6 @@
 # Keystone Estate Care CRM
 
-An employee workspace for estate care. The local embedded workspace opens directly to the overview. Hosted and externally connected workspaces require a shared password on the page and every API request. On first database access, a migration adds five fictional contacts searchable by the tag "Test contact". Existing records are preserved. Use a dedicated database for the demo. Anyone admitted to the demo can read and change its records.
+Keystone staff manage estate care, professional relationships, probate opportunities and follow-ups in one workspace. Hosted access uses confirmed Supabase employee identities with administrator-managed membership. The local embedded workspace includes five fictional test contacts. The separate probate demonstration dataset can be loaded and removed from Settings.
 
 ## Try it locally
 
@@ -30,27 +30,9 @@ Open the local URL printed by Next.js. With an empty DATABASE_URL, the server ru
 
 Upload a JPEG or PNG in Documents before selecting it as the company logo. Use Cmd+K or Ctrl+K for global search. Each record type has its own form and contextual actions. Lead imports require a name header and support up to 500 records per import. Use a lead export as a template. A duplicate email or invalid row rolls back the batch. Directory and report calculations exclude archived records. Report date ranges use record creation dates. Conversion rate is won leads divided by total leads in scope.
 
-## Supabase setup
+## Supabase and Vercel
 
-1. Connect a dedicated Supabase project. On first access the server initializes the Keystone schema if needed and applies the five-contact migration in a transaction. The connection needs migration privileges on first use. Alternatively apply 001_crm.sql to a new database and 003_test_contacts.sql once in the SQL Editor. For documents also apply 002_storage.sql in the SQL Editor.
-2. In the project Connect dialog copy the PostgreSQL transaction pooler URI. Substitute the URL-encoded database password. Set DATABASE_URL only on the server. The adapter uses TLS and disables prepared statements for the transaction pooler.
-3. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in protected server environment settings. The storage migration creates the private keystone-demo bucket. Keep the keystone database schema outside exposed Data API schemas and retain the absence of anonymous bucket policies.
-4. With those settings in a private local .env.local, run npm run demo:documents to add the two fictional sample reports. This command can be rerun.
-5. Verify record creation, conversion, settings writes, document upload, preview and download against this isolated project before sharing it.
-
-| Server variable | Purpose |
-| --- | --- |
-| POSTGRES_URL | Alternative to DATABASE_URL for a managed PostgreSQL integration |
-| CRM_WORKSPACE_PASSWORD | Unique shared testing password, at least 16 characters. Sign in with username keystone. |
-| DATABASE_URL | Dedicated demo PostgreSQL connection URI |
-| SUPABASE_URL | URL of the same Supabase project |
-| SUPABASE_SERVICE_ROLE_KEY | Server-only credential for the private storage bucket |
-
-## Vercel deployment
-
-Import the GitHub repository as a new Next.js project. Use its root directory and built-in build settings. Configure the shared workspace password, one database URL and both storage variables for the intended environment. Enable Deployment Protection and verify coverage of the actual URL you plan to share. If your plan protects preview deployments only, share a protected preview and leave production without database credentials. Deploy, then test a private browser session signed out of Vercel. Verify the CRM page, /api/crm and a document URL all require access. Sign in with the authorized team and repeat the walkthrough. Record the verified URL after these checks succeed.
-
-Provider references: [Supabase connections](https://supabase.com/docs/guides/database/connecting-to-postgres) and [Vercel deployment protection](https://vercel.com/docs/deployment-protection).
+Follow the [deployment and authentication guide](docs/HERMES_SETUP.md) for server configuration, migrations, access management, verification and rollback. Configure credentials only in the appropriate server environment.
 
 ## Architecture
 
@@ -69,7 +51,7 @@ Conversion locks the lead, checks Won status and atomically creates or retrieves
 | POST /api/files | Upload multipart file, category, description and optional parent_id |
 | GET /api/files?id=UUID | Stream the associated private file. Add download=1 for attachment disposition |
 
-The hosted API verifies the shared workspace credential on every request. Use this shared workspace only for testing; individual employee authentication and permissions are required for real customer data. For Hermes or another external integration, add a separate authenticated API with individual scopes, rate limits, audit identity, idempotency keys and bounded pagination. Call the same transaction services after checking authorization. Calendar synchronization can consume appointment IDs and update timestamps through that service. No paid AI or external calendar connection is required.
+Employees use authenticated CRM endpoints. Hermes uses a dedicated bearer credential for the versioned research endpoints. See the [integration handoff](docs/HERMES_INTEGRATION.md), [request examples](docs/HERMES_API_EXAMPLES.md) and [OpenAPI contract](docs/openapi.json).
 
 ## Demo reset
 
@@ -86,14 +68,3 @@ npm run typecheck
 
 The database regression suite runs against an isolated in-memory PostgreSQL engine. Browser tests write fictional QA rows to a disposable local demo. Run npm run build first. The test runner starts an isolated production server on port 4289 with an in-memory database and a separate upload directory. Install Playwright Chromium with npx playwright install chromium, or set CHROMIUM_PATH to an existing executable, then run npm run test:ui. Test data must stay separate from customer records.
 
-## Employee authentication and production launch
-
-- [ ] Create a separate production database and bucket. After applying migrations, archive the five test contacts before production.
-- [ ] Configure invite-only Supabase Auth, server-side session handling and verified identity checks for every read, write and file request. Bind each verified auth.users ID to exactly one employees.auth_user_id and enforce the identity relationship in the database.
-- [ ] Define administrator, manager and employee permission matrices. Derive actor identity server-side. Enforce assignment and record access in the service and database, including linked properties, documents and search results.
-- [ ] Replace privileged demo reads/writes with user-scoped or least-privileged access and tested row-level policies. Restrict settings and employee changes to authorized administrators. Require scoped file authorization before any storage call.
-- [ ] Test anonymous denial, cross-employee access denial, invitations, revoked employees, expired sessions, direct API calls and private file downloads. Verify no demo endpoint can bypass the new rules.
-- [ ] Configure rate limits, upload content validation/scanning, backup/restore tests, monitoring and audit retention. Keep property access codes in a separate restricted system when that feature is designed.
-- [ ] Verify the authenticated production configuration. Verify deployment protection, domain settings and server secrets. Run browser, database and live Supabase smoke tests before entering actual customer data.
-
-The demo reads one workspace snapshot and paginates in the browser. Move search, aggregates and pagination to indexed server queries before growing beyond demo-scale datasets. Employee assignment and activity counts in demo mode do not establish authenticated authorship.

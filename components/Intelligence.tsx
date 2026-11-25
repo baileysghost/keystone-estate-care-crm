@@ -25,9 +25,10 @@ interface Person {
   created_at: string;
 }
 interface Data {
+  active_properties: number;
   cases: Case[];
   attorneys: Person[];
-  firms: { id: string; firm_name: string }[];
+  firms: { id: string; firm_name: string; data: Bag }[];
   linked: { case_id: string; attorney_id: string }[];
   runs: {
     id: string;
@@ -138,6 +139,7 @@ export default function Intelligence({ page }: { page: string }) {
     [setting, K] = useState("territory"),
     [edit, A] = useState(""),
     [role, G] = useState("employee"),
+    [recipient, Recipient] = useState(""),
     [mergeTarget, Merge] = useState("");
   const refresh = useCallback(async () => {
     const r = await fetch("/api/intelligence?demo=" + demo, {
@@ -248,7 +250,13 @@ export default function Intelligence({ page }: { page: string }) {
           <option key={s}>{s}</option>
         ))}
       </select>
-      <button onClick={() => act("stage", { value: stage })}>Set stage</button>
+      <button
+        onClick={() =>
+          act("stage", { value: stage, attorney_id: recipient || undefined })
+        }
+      >
+        Set stage
+      </button>
       <button onClick={() => act("approve")}>Approve</button>
       <button onClick={() => act("reject")}>Reject</button>
       <button onClick={() => act("archive")}>Archive</button>
@@ -353,6 +361,7 @@ export default function Intelligence({ page }: { page: string }) {
   );
 
   const stats = {
+    "Active managed properties": db.active_properties,
     "New today": active.filter((c) => day(c.first_discovered_at) === today)
       .length,
     "New in 7 days": active.filter((c) => since(c.first_discovered_at, 7))
@@ -481,6 +490,14 @@ export default function Intelligence({ page }: { page: string }) {
                   last_verified: when(chosen.last_verified_at),
                   stage: chosen.stage,
                   lead_score: chosen.lead_score,
+                  priority:
+                    chosen.lead_score >= 85
+                      ? "High priority"
+                      : chosen.lead_score >= 65
+                        ? "Qualified"
+                        : chosen.lead_score >= 40
+                          ? "Needs research"
+                          : "Low priority",
                 }}
               />
               <h3>Score breakdown</h3>
@@ -491,6 +508,20 @@ export default function Intelligence({ page }: { page: string }) {
                 </button>
               ))}
               <button onClick={() => act("review")}>Mark reviewed</button>
+              {people(chosen.id).length > 1 && (
+                <select
+                  aria-label="Attorney contacted"
+                  value={recipient}
+                  onChange={(e) => Recipient(e.target.value)}
+                >
+                  <option value="">Choose attorney</option>
+                  {people(chosen.id).map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.full_name}
+                    </option>
+                  ))}
+                </select>
+              )}
               {controls}
               <h3>Follow-ups</h3>
               {db.tasks
@@ -513,7 +544,20 @@ export default function Intelligence({ page }: { page: string }) {
           ) : person ? (
             <>
               <h2>{person.full_name}</h2>
-              <Facts data={{ ...person.data, ...person.staff }} />
+              <Facts
+                data={{
+                  ...person.data,
+                  ...person.staff,
+                  date_discovered: when(person.created_at),
+                  associated_cases: db.linked.filter(
+                    (l) => l.attorney_id === person.id,
+                  ).length,
+                  referrals: db.activity.filter(
+                    (a) =>
+                      a.attorney_id === person.id && a.action === "referral",
+                  ).length,
+                }}
+              />
               <select value={relation} onChange={(e) => H(e.target.value)}>
                 {relationships.map((s) => (
                   <option key={s}>{s}</option>
@@ -583,6 +627,20 @@ export default function Intelligence({ page }: { page: string }) {
                   </button>
                 </>
               )}
+              <button
+                disabled={!note}
+                onClick={() => act("referral", { id: person.id, value: note })}
+              >
+                Log referral
+              </button>
+              <button
+                disabled={!note}
+                onClick={() =>
+                  act("communication", { id: person.id, value: note })
+                }
+              >
+                Log communication
+              </button>
               <h3>Associated cases</h3>
               {table(
                 active.filter((c) =>
@@ -593,6 +651,7 @@ export default function Intelligence({ page }: { page: string }) {
           ) : firm ? (
             <>
               <h2>{firm.firm_name}</h2>
+              <Facts data={firm.data} />
               {db.attorneys
                 .filter((p) => p.law_firm_id === firm.id)
                 .map((p) => (
@@ -630,7 +689,15 @@ export default function Intelligence({ page }: { page: string }) {
               </p>
             ))}
           {db.activity
-            .filter((a) => a.case_id === detail || a.attorney_id === detail)
+            .filter(
+              (a) =>
+                a.case_id === detail ||
+                a.attorney_id === detail ||
+                (firm &&
+                  db.attorneys.some(
+                    (p) => p.law_firm_id === firm.id && p.id === a.attorney_id,
+                  )),
+            )
             .map((a) => (
               <p key={a.id}>
                 {when(a.created_at)} · {a.actor} · {a.action} {a.detail}

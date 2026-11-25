@@ -82,22 +82,6 @@ async function api(body: unknown) {
   if (!res.ok) throw Error(data.error);
   return data.result;
 }
-function Logo() {
-  return (
-    <svg
-      aria-hidden="true"
-      width="40"
-      height="46"
-      viewBox="0 0 40 46"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <path d="M3 4h34l-6 37H9z" />
-      <path d="M14 12v20m14-20L15 22l12 10" />
-    </svg>
-  );
-}
 export default function Workspace() {
   const [db, setDB] = useState<Snapshot | null>(null),
     [page, setPage] = useState("Overview"),
@@ -269,18 +253,16 @@ export default function Workspace() {
               }}
             />
           ) : (
-            <Logo />
+            <div
+              className="official-logo"
+              role="img"
+              aria-label="Keystone Estate Care"
+            />
           )}
-          <span>
-            {db?.settings.company?.[0] &&
-            db.settings.company[0] !== "Keystone Estate Care" ? (
-              db.settings.company[0]
-            ) : (
-              <>
-                KEYSTONE<small>ESTATE CARE</small>
-              </>
+          {db?.settings.company?.[0] &&
+            db.settings.company[0] !== "Keystone Estate Care" && (
+              <span>{db.settings.company[0]}</span>
             )}
-          </span>
         </div>
         <div className="navcaption">Workspace</div>
         <nav>

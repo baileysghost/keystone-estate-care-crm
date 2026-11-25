@@ -10,8 +10,8 @@ body {
     14px/1.45 "Inter",
     "Arial",
     sans-serif;
-  color: #292d2b;
-  background: #f5f2eb;
+  color: #263348;
+  background: #f8f9fb;
 }
 button,
 select,
@@ -34,7 +34,7 @@ select {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1px solid var(--line, #dcded6);
+  border: 1px solid var(--line, #dce1e7);
   border-radius: 6px;
   background: var(--panel, #fff);
   color: inherit;
@@ -69,12 +69,12 @@ textarea,
 select {
   background: var(--panel, #fff);
   color: inherit;
-  border: 1px solid var(--line, #dcded6);
+  border: 1px solid var(--line, #dce1e7);
   border-radius: 5px;
   padding: 8px 10px;
 }
 input[type="checkbox"] {
-  accent-color: #316449;
+  accent-color: #304c72;
 }
 h1,
 h2,
@@ -102,18 +102,18 @@ h3 {
 }
 small,
 .pagehead p {
-  color: var(--muted, #626c64);
+  color: var(--muted, #626c7a);
 }
 small {
   font-size: 12px;
   display: block;
 }
 .shell {
-  --bg: #f6f5f0;
-  --panel: #fffefa;
-  --ink: #27362e;
-  --line: #dddfd5;
-  --muted: #667168;
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --ink: #25344c;
+  --line: #dce1e8;
+  --muted: #627086;
   min-height: 100vh;
   display: grid;
   grid-template-columns: 218px minmax(0, 1fr);
@@ -121,19 +121,19 @@ small {
   color: var(--ink);
 }
 .dark {
-  --bg: #19231e;
-  --panel: #26332c;
-  --ink: #f5f2eb;
-  --line: #48574d;
-  --muted: #becbbf;
+  --bg: #111b2a;
+  --panel: #1b2c43;
+  --ink: #f8f9fb;
+  --line: #435570;
+  --muted: #c3cede;
 }
 .shell aside {
   position: sticky;
   top: 0;
   height: 100dvh;
   overflow: auto;
-  background: #173b2c;
-  color: #f5f2eb;
+  background: #142438;
+  color: #f8f9fb;
   display: flex;
   flex-direction: column;
   padding: 29px 13px 18px;
@@ -168,12 +168,12 @@ small {
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.15em;
-  color: #b3c3b8;
+  color: #b3bfd2;
 }
 nav button {
   border: 0;
   background: transparent;
-  color: #d9e3dc;
+  color: #e0e7f1;
   justify-content: flex-start;
   width: 100%;
   padding: 9px 12px;
@@ -181,7 +181,7 @@ nav button {
   gap: 12px;
 }
 nav button.selected {
-  background: #365b47;
+  background: #2a4263;
   color: #fff;
   box-shadow: inset 2px 0 #b99a60;
 }
@@ -196,7 +196,7 @@ nav button.selected svg {
   border-top: 1px solid #ffffff23;
   margin-top: auto;
   font-size: 11px;
-  color: #cedbd0;
+  color: #d3ddeb;
 }
 .demodot {
   width: 7px;
@@ -256,9 +256,9 @@ th button {
   border-radius: 3px;
 }
 .primary {
-  background: #173b2c;
+  background: #142438;
   color: #fff;
-  border-color: #173b2c;
+  border-color: #142438;
   font-weight: 550;
 }
 .quick,
@@ -276,7 +276,7 @@ details {
   padding: 5px;
   border: 1px solid var(--line);
   background: var(--panel);
-  box-shadow: 0 8px 25px #14201822;
+  box-shadow: 0 8px 25px #14243822;
   border-radius: 6px;
 }
 .popover button,
@@ -338,7 +338,7 @@ details {
   font-weight: 600;
 }
 .metriclabel svg {
-  color: #74836c;
+  color: #6c7e98;
 }
 .metric strong {
   display: block;
@@ -370,7 +370,7 @@ details {
   margin-top: 4px;
 }
 .panelhead > svg {
-  color: #74836c;
+  color: #6c7e98;
 }
 .panelhead select,
 .panelhead button {
@@ -384,7 +384,7 @@ details {
 .legend i {
   width: 8px;
   height: 8px;
-  background: #356744;
+  background: #304a70;
   border-radius: 50%;
 }
 .legend i:nth-child(2) {
@@ -473,15 +473,15 @@ details {
   margin-top: 5px;
   border: 0;
   appearance: none;
-  background: #e4e7dc;
+  background: #e4e8ef;
   border-radius: 3px;
 }
 .bars progress::-webkit-progress-bar {
-  background: #e4e7dc;
+  background: #e4e8ef;
   border-radius: 3px;
 }
 .bars progress::-webkit-progress-value {
-  background: #728c78;
+  background: #7188a6;
   border-radius: 3px;
 }
 .bars > button {
@@ -551,13 +551,13 @@ th button {
   width: 29px;
   height: 29px;
   border-radius: 7px;
-  background: #e8ece1;
-  color: #435c46;
+  background: #e7ecf4;
+  color: #3b5171;
   font: 11px Arial;
 }
 .pill {
-  background: #e8eee4;
-  color: #34553d;
+  background: #e7edf5;
+  color: #2f4768;
   border-radius: 20px;
   padding: 3px 9px;
   font-size: 11px;
@@ -604,7 +604,7 @@ footer small {
   justify-content: space-between;
 }
 .stage.over {
-  background: #dbe5d9;
+  background: #dce5f2;
 }
 .deal {
   display: grid;
@@ -638,8 +638,8 @@ footer small {
   display: block;
   width: 100%;
   text-align: left;
-  color: #31573c;
-  background: #e4ede2;
+  color: #273f62;
+  background: #e5ebf5;
   border: 0;
   font-size: 11px;
   margin: 3px 0;
@@ -674,13 +674,13 @@ footer small {
 .overlay {
   position: fixed;
   inset: 0;
-  background: #14231cc0;
+  background: #121e30c0;
   z-index: 9;
 }
 .modal {
-  --panel: #fffefa;
-  --line: #dddfd5;
-  --bg: #f5f2eb;
+  --panel: #ffffff;
+  --line: #dce1e8;
+  --bg: #f8f9fb;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -690,7 +690,7 @@ footer small {
   overflow: auto;
   z-index: 10;
   background: var(--panel);
-  color: #27362e;
+  color: #25344c;
   border-radius: 10px;
   box-shadow: 0 15px 60px #0003;
 }
@@ -715,7 +715,7 @@ footer small {
   padding: 20px;
 }
 .skeleton {
-  background: #e5e6df;
+  background: #e5e8ed;
   min-height: 130px;
   border-radius: 8px;
 }
@@ -725,7 +725,7 @@ footer small {
   bottom: 22px;
   right: 20px;
   max-width: 90vw;
-  background: #173b2c;
+  background: #142438;
   color: white;
   padding: 10px 16px;
   display: flex;
@@ -804,7 +804,7 @@ footer small {
     display: block;
     position: fixed;
     inset: 0;
-    background: #15251b66;
+    background: #15243966;
     z-index: 7;
     border: 0;
     border-radius: 0;
@@ -917,8 +917,21 @@ footer small {
 select.stagepicker {
   font-size: 11px;
   border-radius: 14px;
-  color: #34553d;
-  background: #e8eee4;
+  color: #2f4768;
+  background: #e7edf5;
   border-color: transparent;
   padding: 3px 6px;
+}
+.official-logo {
+  width: 100%;
+  height: 116px;
+  background: #fff url("/brand/white.webp") center/contain no-repeat;
+  border-radius: 5px;
+}
+.dark .official-logo {
+  background: #112134 url("/brand/navy.webp") center/contain no-repeat;
+}
+.compact .official-logo {
+  height: 38px;
+  background: white url("/brand/icon.webp") center/contain no-repeat;
 }

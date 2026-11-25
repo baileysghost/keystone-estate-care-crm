@@ -29,22 +29,25 @@ export type Row = {
 export type Settings = Record<string, string[]>;
 export type Snapshot = { rows: Row[]; settings: Settings };
 export const fields: Record<Kind, string[]> = {
-  lead: "first_name last_name household email phone secondary_phone street city state zip website source value priority status last_contact follow_up".split(
+  lead: "first_name last_name household email phone secondary_phone street city state zip website source value priority status last_contact follow_up estate_name probate_county case_reference probate_stage billing_arrangement".split(
     " ",
   ),
   customer:
-    "household email alternate_email phone secondary_phone billing_address preferred_method status customer_since source frequency service_start renewal monthly_value instructions preferences".split(
+    "household email alternate_email phone secondary_phone billing_address preferred_method status customer_since source frequency service_start renewal monthly_value instructions preferences estate_name probate_county case_reference probate_stage billing_arrangement escrow_status estimated_escrow_close".split(
       " ",
     ),
   property:
-    "street city state zip property_type square_feet status frequency emergency_contact preferred_times instructions maintenance last_service next_service".split(
+    "street city state zip property_type square_feet status frequency emergency_contact preferred_times instructions maintenance last_service next_service occupancy_status vacancy_since inspection_frequency next_inspection property_security_status".split(
       " ",
     ),
   contact: "contact_type job_title company email phone preferred_method".split(
     " ",
   ),
   task: "category description due time priority status completed_on".split(" "),
-  appointment: "category due time end_time description".split(" "),
+  appointment:
+    "category due time end_time description inspection_outcome report_sent_date".split(
+      " ",
+    ),
   note: ["description", "pinned"],
   communication: ["category", "due", "time", "description", "follow_up"],
   document: ["category", "description"],
@@ -97,6 +100,11 @@ export const defaults: Settings = {
     "Home watch",
     "Vendor coordination",
     "Seasonal preparation",
+    "Vacant-property inspections",
+    "Estate inventory and photo reporting",
+    "Property security coordination",
+    "Cleanout coordination",
+    "Escrow handoff",
   ],
   taskTypes: [
     "Phone call",
@@ -130,6 +138,47 @@ export function choices(
           ? ["Open", "In progress", "Completed"]
           : ["Active", "Pending", "Inactive"];
   const opts: Settings = {
+    probate_stage: [
+      "Unconfirmed",
+      "Intake",
+      "Representative appointed",
+      "Estate administration",
+      "Preparing for sale",
+      "In escrow",
+      "Closed",
+    ],
+    billing_arrangement: [
+      "Unconfirmed",
+      "Direct billing",
+      "Escrow-deferred",
+      "Other",
+    ],
+    escrow_status: ["Unconfirmed", "Not opened", "Open", "Closed", "Cancelled"],
+    occupancy_status: [
+      "Unconfirmed",
+      "Vacant",
+      "Occupied",
+      "Partially occupied",
+    ],
+    inspection_frequency: [
+      "Unconfirmed",
+      "Weekly",
+      "Every two weeks",
+      "Monthly",
+      "As requested",
+    ],
+    property_security_status: [
+      "Unconfirmed",
+      "Check scheduled",
+      "Secured at last visit",
+      "Action required",
+    ],
+    inspection_outcome: [
+      "Not applicable",
+      "No issues observed",
+      "Follow-up required",
+      "Unable to access",
+    ],
     source: s.sources,
     property_type: s.propertyTypes,
     priority: ["Normal", "High", "Low"],
@@ -146,6 +195,12 @@ export function choices(
       "Vendor",
       "Contractor",
       "Referral partner",
+      "Executor",
+      "Administrator",
+      "Trustee",
+      "Probate attorney",
+      "Probate realtor",
+      "Escrow officer",
       "Other",
     ],
     category:
@@ -185,7 +240,7 @@ export function choices(
   return opts[key];
 }
 export const dates = new Set(
-  "last_contact follow_up customer_since service_start renewal last_service next_service due completed_on".split(
+  "last_contact follow_up customer_since service_start renewal last_service next_service due completed_on estimated_escrow_close vacancy_since next_inspection report_sent_date".split(
     " ",
   ),
 );

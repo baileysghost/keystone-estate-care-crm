@@ -101,15 +101,13 @@ test("mobile navigation, task completion and grouped search", async ({
 test("CSV lead import, bulk archive, restore and export", async ({ page }) => {
   await page.getByRole("button", { name: "Leads", exact: true }).click();
   const name = "CSV household " + Date.now();
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "leads.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(
-        "name,email,status\n" + name + ",sample.csv@example.test,Qualified",
-      ),
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name: "leads.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "name,email,status\n" + name + ",sample.csv@example.test,Qualified",
+    ),
+  });
   await page.getByLabel("Search directory").fill(name);
   await expect(page.getByRole("row").filter({ hasText: name })).toBeVisible();
   await page.getByLabel("Select " + name, { exact: true }).check();
@@ -152,4 +150,23 @@ test("reschedule an appointment, change calendar views, and filter reports", asy
   await expect(
     page.getByText("No records in this period.").first(),
   ).toBeVisible();
+});
+test("probate intake and billing criteria persist in the lead profile", async ({
+  page,
+}) => {
+  await expect(
+    page.getByRole("img", { name: "Keystone Estate Care" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Leads", exact: true }).click();
+  await page.getByRole("button", { name: "New lead", exact: true }).click();
+  const name = "Probate intake " + Date.now();
+  await page.getByLabel("Name or title").fill(name);
+  await page.getByLabel("Estate name").fill("Example Estate");
+  await page.getByLabel("Probate county").fill("Los Angeles");
+  await page.getByLabel("Billing arrangement").selectOption("Escrow-deferred");
+  await page.getByRole("button", { name: "Save lead" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByLabel("Search directory").fill(name);
+  await page.getByRole("button", { name: new RegExp(name) }).click();
+  await expect(page.getByRole("dialog")).toContainText("Escrow-deferred");
 });

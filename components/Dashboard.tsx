@@ -154,27 +154,27 @@ export function Dashboard({ db, go, open, complete }: Props) {
                 <CartesianGrid
                   strokeDasharray="3 5"
                   vertical={false}
-                  stroke="#dddcd4"
+                  stroke="#dce1e8"
                 />
                 <XAxis
                   dataKey="name"
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fontSize: 11, fill: "#777b75" }}
+                  tick={{ fontSize: 11, fill: "#626e80" }}
                 />
                 <YAxis
                   allowDecimals={false}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 10, fill: "#777b75" }}
+                  tick={{ fontSize: 10, fill: "#626e80" }}
                 />
                 <Tooltip />
                 <Area
                   name="Customers"
                   type="monotone"
                   dataKey="customers"
-                  stroke="#356744"
-                  fill="#60866b"
+                  stroke="#304a70"
+                  fill="#738ba9"
                   fillOpacity={0.12}
                   strokeWidth={2.5}
                 />

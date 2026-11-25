@@ -3416,7 +3416,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Authenticated database check. Returns status, database_connected and ingestion_enabled at the top level and in data."
       }
     },
     "/config": {

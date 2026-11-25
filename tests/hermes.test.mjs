@@ -53,6 +53,12 @@ test("integration, retries, audit, permissions, demo isolation and preservation"
         .status,
       422,
     );
+    const health = await call("health");
+    assert.equal(health.status, "ok");
+    assert.equal(health.database_connected, true);
+    assert.equal(health.ingestion_enabled, true);
+    for (const name of ["attorneys", "leads"])
+      assert.deepEqual((await call(name))[name], []);
     const first = await call("leads", cases, key);
     assert.equal(first.status, 200);
     assert.equal(first.data.created, true);

@@ -114,6 +114,7 @@ export const defaults: Settings = {
   tags: ["Coastal", "Referral", "Seasonal"],
   notifications: ["Show overdue reminders"],
   appearance: ["Light"],
+  logo: ["Keystone mark"],
 };
 export function choices(
   kind: Kind,

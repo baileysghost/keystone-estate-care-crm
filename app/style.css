@@ -906,3 +906,11 @@ footer small {
     transition-duration: 0s !important;
   }
 }
+.company-logo {
+  display: block;
+  width: 42px;
+  height: 45px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}

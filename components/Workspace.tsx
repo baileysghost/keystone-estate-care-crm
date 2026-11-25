@@ -30,6 +30,7 @@ import { Directory } from "./Directory";
 import { Editor, type Draft } from "./Editor";
 import { Pipeline, Calendar, Timeline } from "./Operations";
 import { Profile } from "./Profile";
+import { Button } from "./ui/button";
 import Reports from "./Reports";
 import { Modal } from "./ui/dialog";
 import {
@@ -135,6 +136,7 @@ export default function Workspace() {
     };
     route();
     window.addEventListener("hashchange", route);
+    window.addEventListener("popstate", route);
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -144,6 +146,7 @@ export default function Workspace() {
     window.addEventListener("keydown", key);
     return () => {
       window.removeEventListener("hashchange", route);
+      window.removeEventListener("popstate", route);
       window.removeEventListener("keydown", key);
     };
   }, [refresh]);
@@ -253,9 +256,30 @@ export default function Workspace() {
       )}
       <aside className={mobile ? "mobile-open" : ""}>
         <div className="brand">
-          <Logo />
+          {db?.settings.logo?.[0] && db.settings.logo[0] !== "Keystone mark" ? (
+            <span
+              role="img"
+              aria-label="Company logo"
+              className="company-logo"
+              style={{
+                backgroundImage:
+                  "url(/api/files?id=" +
+                  encodeURIComponent(db.settings.logo[0]) +
+                  ")",
+              }}
+            />
+          ) : (
+            <Logo />
+          )}
           <span>
-            KEYSTONE<small>ESTATE CARE</small>
+            {db?.settings.company?.[0] &&
+            db.settings.company[0] !== "Keystone Estate Care" ? (
+              db.settings.company[0]
+            ) : (
+              <>
+                KEYSTONE<small>ESTATE CARE</small>
+              </>
+            )}
           </span>
         </div>
         <div className="navcaption">Workspace</div>
@@ -575,8 +599,38 @@ export default function Workspace() {
           >
             <div className="tools">
               <label>
-                {pref === "appearance" ? "Appearance" : "Values, one per line"}
-                {pref === "appearance" ? (
+                {pref === "logo"
+                  ? "Logo from uploaded images"
+                  : pref === "appearance"
+                    ? "Appearance"
+                    : pref === "notifications"
+                      ? "Dashboard reminders"
+                      : "Values, one per line"}
+                {pref === "logo" ? (
+                  <select name="values" defaultValue={db.settings.logo[0]}>
+                    <option>Keystone mark</option>
+                    {db.rows
+                      .filter(
+                        (r) =>
+                          r.kind === "document" &&
+                          !r.archived &&
+                          r.data.mime?.startsWith("image/"),
+                      )
+                      .map((r) => (
+                        <option value={r.id} key={r.id}>
+                          {r.name}
+                        </option>
+                      ))}
+                  </select>
+                ) : pref === "notifications" ? (
+                  <select
+                    name="values"
+                    defaultValue={db.settings.notifications[0]}
+                  >
+                    <option>Show overdue reminders</option>
+                    <option>Hide overdue reminders</option>
+                  </select>
+                ) : pref === "appearance" ? (
                   <select name="values" defaultValue={db.settings[pref][0]}>
                     <option>Light</option>
                     <option>Dark</option>
@@ -592,7 +646,7 @@ export default function Workspace() {
               </label>
             </div>
             <footer>
-              <button className="primary">Save preference</button>
+              <Button className="primary">Save preference</Button>
             </footer>
           </form>
         </Modal>

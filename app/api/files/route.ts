@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     const key = randomUUID();
     const bucket = storage();
     const bytes = Buffer.from(await file.arrayBuffer());
-    const dir = path.join(process.cwd(), ".demo/files");
+    const dir = path.resolve(process.env.CRM_FILE_DIR || ".demo/files");
     if (bucket) {
       const { error } = await bucket.upload(key, bytes, {
         contentType: file.type,
@@ -96,7 +96,9 @@ export async function GET(req: Request) {
       if (error) throw Error("File unavailable.");
       bytes = new Uint8Array(await data.arrayBuffer());
     } else
-      bytes = await fs.readFile(path.join(process.cwd(), ".demo/files", key));
+      bytes = await fs.readFile(
+        path.resolve(process.env.CRM_FILE_DIR || ".demo/files", key),
+      );
     return new Response(new Uint8Array(bytes).buffer, {
       headers: {
         "Content-Type": file.data.mime,

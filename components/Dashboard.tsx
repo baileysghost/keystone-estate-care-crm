@@ -237,23 +237,29 @@ export function Dashboard({ db, go, open, complete }: Props) {
               ["Due today", "Today"],
               ["Overdue tasks", "Overdue"],
               ["Overdue follow-ups", "Overdue follow-ups"],
-            ].map(([title, f]) => (
-              <button
-                key={f}
-                onClick={() =>
-                  go(f === "Overdue follow-ups" ? "Leads" : "Tasks", f)
-                }
-              >
-                <b>
-                  {
-                    (f === "Overdue follow-ups" ? leads : tasks).filter((r) =>
-                      matches(r, f),
-                    ).length
+            ]
+              .filter(
+                ([, f]) =>
+                  db.settings.notifications[0] !== "Hide overdue reminders" ||
+                  f === "Today",
+              )
+              .map(([title, f]) => (
+                <button
+                  key={f}
+                  onClick={() =>
+                    go(f === "Overdue follow-ups" ? "Leads" : "Tasks", f)
                   }
-                </b>
-                {title}
-              </button>
-            ))}
+                >
+                  <b>
+                    {
+                      (f === "Overdue follow-ups" ? leads : tasks).filter((r) =>
+                        matches(r, f),
+                      ).length
+                    }
+                  </b>
+                  {title}
+                </button>
+              ))}
           </div>
           {tasks
             .filter((r) => r.data.status !== "Completed")

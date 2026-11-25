@@ -63,3 +63,24 @@ test("migration, seed, transaction rollback, conversion and history", async () =
 });
 
 after(closeDatabase);
+test("communications update last contact, stale saves fail and archived leads persist", async () => {
+  const rows = (await snapshot()).rows;
+  const lead = rows.find((r) => r.kind === "lead" && r.data.status !== "Won");
+  await transaction((q) =>
+    save(q, {
+      kind: "communication",
+      name: "Demo phone call",
+      parent_id: lead.id,
+      data: { category: "Phone call", due: "2026-12-15" },
+    }),
+  );
+  let fresh = (await snapshot()).rows.find((r) => r.id === lead.id);
+  assert.equal(fresh.data.last_contact, "2026-12-15");
+  await assert.rejects(
+    transaction((q) => save(q, { ...lead, archived: true })),
+    /changed/,
+  );
+  await transaction((q) => save(q, { ...fresh, archived: true }));
+  fresh = (await snapshot()).rows.find((r) => r.id === lead.id);
+  assert.equal(fresh.archived, true);
+});

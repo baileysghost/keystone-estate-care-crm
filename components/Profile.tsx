@@ -71,6 +71,18 @@ export function Profile({
           </button>
         ))}
       </div>
+      {tab === "Overview" &&
+        links.some((x) => x.kind === "note" && x.data.pinned === "Yes") && (
+          <section>
+            <h3 className="groupname">Pinned notes</h3>
+            <Timeline
+              rows={links.filter(
+                (x) => x.kind === "note" && x.data.pinned === "Yes",
+              )}
+              open={open}
+            />
+          </section>
+        )}
       {tab === "Overview" ? (
         <div className="facts">
           {Object.entries({

@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         )
           throw Error("Keep the Won and Lost stages for conversion reporting.");
         await q(
-          "insert into company_settings values($1,$2) on conflict(key) do update set value=excluded.value",
+          "insert into company_settings values($1,$2::text::jsonb) on conflict(key) do update set value=excluded.value",
           [key, JSON.stringify([...new Set(vals)])],
         );
         if (key === "stages") {
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
             continue;
           }
           if (!v) continue;
-          if (dates.has(key) && !/^\d{4}-\d{2}-\d{2}$/.test(v))
+          if (dates.has(key) && !z.iso.date().safeParse(v).success)
             throw Error("Enter a valid date.");
           if (
             ["value", "monthly_value", "square_feet"].includes(key) &&

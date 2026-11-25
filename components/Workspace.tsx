@@ -302,7 +302,7 @@ export default function Workspace() {
         </nav>
         <div className="sidebarfoot">
           <span className="demodot" />
-          <span>Fictional demo workspace</span>
+          <span>Internal workspace</span>
         </div>
       </aside>
       <main>

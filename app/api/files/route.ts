@@ -1,6 +1,8 @@
+import { workspaceAccess } from "../../../lib/workspace-access.mjs";
 import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { connectionUrl } from "../../../lib/connection.mjs";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { transaction } from "../../../lib/database.mjs";
@@ -11,7 +13,7 @@ type Query = (
   params?: unknown[],
 ) => Promise<{ name: string; data: Record<string, string> }[]>;
 function storage() {
-  if (!process.env.DATABASE_URL) return null;
+  if (!connectionUrl()) return null;
   return createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -19,10 +21,10 @@ function storage() {
   ).storage.from("keystone-demo");
 }
 export async function POST(req: Request) {
+  const denied = workspaceAccess(req);
+  if (denied) return denied;
   try {
     checkOrigin(req);
-    if (process.env.CRM_DEMO_MODE !== "fictional")
-      throw Error("Demo mode required.");
     const f = await req.formData();
     const file = f.get("file");
     if (
@@ -78,6 +80,8 @@ export async function POST(req: Request) {
   }
 }
 export async function GET(req: Request) {
+  const denied = workspaceAccess(req);
+  if (denied) return denied;
   try {
     const params = new URL(req.url).searchParams;
     const id = z.uuid().parse(params.get("id"));

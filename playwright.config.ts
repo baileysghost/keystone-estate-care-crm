@@ -9,9 +9,10 @@ export default defineConfig({
     timeout: 60000,
     reuseExistingServer: false,
     env: {
-      CRM_DEMO_MODE: "fictional",
+      CRM_SEED_SAMPLE_WORKSPACE: "true",
       CRM_TEST_DB: "memory://",
       DATABASE_URL: "",
+      POSTGRES_URL: "",
       VERCEL: "",
       CRM_FILE_DIR: ".demo/browser-test-files",
     },

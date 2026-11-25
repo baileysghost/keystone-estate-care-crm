@@ -3,9 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs/promises";
 import { transaction, closeDatabase } from "../lib/database.mjs";
 import { save } from "../lib/repository.mjs";
-if (process.env.CRM_DEMO_MODE !== "fictional")
-  throw Error("Set CRM_DEMO_MODE=fictional.");
-const bucket = process.env.DATABASE_URL
+import { connectionUrl } from "../lib/connection.mjs";
+const bucket = connectionUrl()
   ? createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY,

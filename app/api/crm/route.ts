@@ -1,10 +1,13 @@
+import { workspaceAccess } from "../../../lib/workspace-access.mjs";
 import { z } from "zod";
 import { transaction } from "../../../lib/database.mjs";
 import { snapshot, save, convert } from "../../../lib/repository.mjs";
 import { defaults, fields, dates } from "../../../lib/model";
 import { recordSchema, checkOrigin, problem } from "../../../lib/api";
 export const dynamic = "force-dynamic";
-export async function GET() {
+export async function GET(req: Request) {
+  const denied = workspaceAccess(req);
+  if (denied) return denied;
   try {
     const s = await snapshot();
     return Response.json(
@@ -20,6 +23,8 @@ type Query = (
   params?: unknown[],
 ) => Promise<Record<string, unknown>[]>;
 export async function POST(req: Request) {
+  const denied = workspaceAccess(req);
+  if (denied) return denied;
   try {
     checkOrigin(req);
     const body = await req.json();

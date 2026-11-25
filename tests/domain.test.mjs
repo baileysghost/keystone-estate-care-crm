@@ -2,16 +2,17 @@ import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { transaction, closeDatabase } from "../lib/database.mjs";
 import { save, snapshot, convert } from "../lib/repository.mjs";
-process.env.CRM_DEMO_MODE = "fictional";
+process.env.CRM_SEED_SAMPLE_WORKSPACE = "true";
 process.env.CRM_TEST_DB = "memory://";
 delete process.env.DATABASE_URL;
+delete process.env.POSTGRES_URL;
 test("migration, seed, transaction rollback, conversion and history", async () => {
   const { rows } = await snapshot();
   for (const [k, n] of Object.entries({
     lead: 20,
     customer: 10,
     property: 15,
-    contact: 25,
+    contact: 30,
     task: 20,
     appointment: 10,
     employee: 4,

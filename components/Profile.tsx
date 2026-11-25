@@ -111,6 +111,7 @@ export function Profile({
       <footer>
         {r.kind === "document" ? (
           <>
+            <button onClick={() => edit(r)}>Edit document</button>
             <a
               className="button"
               target="_blank"

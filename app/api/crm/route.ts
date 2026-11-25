@@ -57,7 +57,17 @@ export async function POST(req: Request) {
       const records = z.array(recordSchema).min(1).max(500).parse(body.rows);
       const ids = [];
       for (const r of records) {
-        if (r.kind === "document") throw Error("Use the document upload form.");
+        let fileMeta: Record<string, string> | undefined;
+        if (r.kind === "document") {
+          if (!r.id) throw Error("Use the document upload form.");
+          const [doc] = await q(
+            "select data from documents where id=$1 for update",
+            [r.id],
+          );
+          if (!doc) throw Error("Document missing.");
+          const original = doc.data as Record<string, string>;
+          fileMeta = { key: original.key, mime: original.mime };
+        }
         for (const [key, v] of Object.entries(r.data)) {
           if (
             !fields[r.kind].includes(key) &&
@@ -79,6 +89,7 @@ export async function POST(req: Request) {
         }
         if (["appointment", "task"].includes(r.kind) && !r.data.due)
           throw Error("Choose a due date.");
+        if (fileMeta) Object.assign(r.data, fileMeta);
         ids.push(await save(q, r));
       }
       return ids;

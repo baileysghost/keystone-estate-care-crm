@@ -384,12 +384,13 @@ export default function Workspace() {
             {page === "Overview" ? (
               <div className="datestamp">
                 <CalendarIcon size={15} />
-                {new Date().toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {db &&
+                  new Date().toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
               </div>
             ) : page === "Documents" ? (
               <button className="primary" onClick={() => uploadTo("")}>
@@ -500,6 +501,7 @@ export default function Workspace() {
               db={db}
               initial={filter}
               open={open}
+              update={update}
               save={save}
               notice={notice}
             />

@@ -19,6 +19,7 @@ export function Directory({
   open,
   save,
   notice,
+  update,
 }: {
   kind: Kind;
   db: Snapshot;
@@ -26,6 +27,7 @@ export function Directory({
   open: (r: Row) => void;
   save: (r: Draft[]) => Promise<void>;
   notice: (s: string) => void;
+  update: (r: Row, status: string) => void;
 }) {
   const [query, search] = useState(""),
     [filter, choose] = useState(initial),
@@ -197,7 +199,7 @@ export function Directory({
           </label>
         )}
       </div>
-      {kind === "lead" && (
+      {
         <div className="tabs">
           <button
             className={!archived ? "active" : ""}
@@ -218,20 +220,20 @@ export function Directory({
             Archived
           </button>
         </div>
-      )}
+      }
       {selected.length > 0 && (
         <div className="tools">
           {selected.length} selected{" "}
+          <button
+            onClick={() => {
+              if (confirm("Change archive status for the selected records?"))
+                void bulk((r) => ({ ...r, archived: !archived }));
+            }}
+          >
+            {archived ? "Restore" : "Archive"}
+          </button>
           {kind === "lead" && (
             <>
-              <button
-                onClick={() => {
-                  if (confirm("Change archive status for selected leads?"))
-                    void bulk((r) => ({ ...r, archived: !archived }));
-                }}
-              >
-                {archived ? "Restore" : "Archive"}
-              </button>
               <select
                 aria-label="Set stage"
                 value=""
@@ -265,7 +267,7 @@ export function Directory({
         <table>
           <thead>
             <tr>
-              {["lead", "task"].includes(kind) && (
+              {
                 <th>
                   <input
                     type="checkbox"
@@ -279,7 +281,7 @@ export function Directory({
                     }
                   />
                 </th>
-              )}
+              }
               <th>
                 <button onClick={() => sort(!reverse)}>
                   Name <ArrowUpDown size={12} />
@@ -293,7 +295,7 @@ export function Directory({
           <tbody>
             {shown.map((r) => (
               <tr key={r.id}>
-                {["lead", "task"].includes(kind) && (
+                {
                   <td>
                     <input
                       type="checkbox"
@@ -308,7 +310,7 @@ export function Directory({
                       }
                     />
                   </td>
-                )}
+                }
                 <td>
                   <button className="record" onClick={() => open(r)}>
                     <span className="avatar">{initials(r.name)}</span>
@@ -317,7 +319,20 @@ export function Directory({
                 </td>
                 {cols.map((c) => (
                   <td key={c}>
-                    {c === "status" ? (
+                    {c === "status" && kind === "lead" ? (
+                      <select
+                        className="stagepicker"
+                        aria-label={"Stage for " + r.name}
+                        value={r.data.status}
+                        onChange={(e) => update(r, e.target.value)}
+                      >
+                        {Array.from(
+                          new Set([...db.settings.stages, r.data.status]),
+                        ).map((s) => (
+                          <option key={s}>{s}</option>
+                        ))}
+                      </select>
+                    ) : c === "status" ? (
                       <span className="pill">{r.data[c]}</span>
                     ) : c === "employee" ? (
                       db.rows.find((x) => x.id === r.employee_id)?.name ||

@@ -60,13 +60,11 @@ test("uploads a document and downloads the same bytes", async ({
   const name = "sample-" + Date.now() + ".txt";
   await page.getByRole("button", { name: "Documents", exact: true }).click();
   await page.getByRole("button", { name: "Upload file" }).click();
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name,
-      mimeType: "text/plain",
-      buffer: Buffer.from("Fictional service summary."),
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name,
+    mimeType: "text/plain",
+    buffer: Buffer.from("Fictional service summary."),
+  });
   await page.getByRole("button", { name: "Upload", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.getByLabel("Search directory").fill(name);
@@ -98,5 +96,60 @@ test("mobile navigation, task completion and grouped search", async ({
   await page.getByPlaceholder("Name, email, phone, address or tag").fill(title);
   await expect(
     page.getByRole("dialog").getByRole("button", { name: title }),
+  ).toBeVisible();
+});
+test("CSV lead import, bulk archive, restore and export", async ({ page }) => {
+  await page.getByRole("button", { name: "Leads", exact: true }).click();
+  const name = "CSV household " + Date.now();
+  await page
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: "leads.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(
+        "name,email,status\n" + name + ",sample.csv@example.test,Qualified",
+      ),
+    });
+  await page.getByLabel("Search directory").fill(name);
+  await expect(page.getByRole("row").filter({ hasText: name })).toBeVisible();
+  await page.getByLabel("Select " + name, { exact: true }).check();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await page.getByRole("button", { name: "Archived", exact: true }).click();
+  await page.getByLabel("Select " + name, { exact: true }).check();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Restore", exact: true }).click();
+  await page.getByRole("button", { name: "Current", exact: true }).click();
+  await expect(page.getByRole("row").filter({ hasText: name })).toBeVisible();
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export", exact: true }).click();
+  expect((await downloaded).suggestedFilename()).toBe("lead.csv");
+});
+test("reschedule an appointment, change calendar views, and filter reports", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Calendar", exact: true }).click();
+  await page
+    .getByRole("button", { name: "New appointment", exact: true })
+    .click();
+  const title = "QA visit " + Date.now();
+  await page.getByLabel("Name or title").fill(title);
+  await page.getByLabel("Time", { exact: true }).fill("14:00");
+  await page.getByRole("button", { name: "Save appointment" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByLabel("Calendar view").selectOption("Day");
+  await page.getByRole("button", { name: new RegExp(title) }).click();
+  await page.getByRole("button", { name: "Edit appointment" }).click();
+  await page.getByLabel("Time", { exact: true }).fill("16:30");
+  await page.getByRole("button", { name: "Save appointment" }).click();
+  await expect(
+    page.getByRole("button", { name: "16:30 " + title }),
+  ).toBeVisible();
+  for (const v of ["Week", "Month", "Agenda"])
+    await page.getByLabel("Calendar view").selectOption(v);
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
+  await page.getByLabel("Created from").fill("2099-01-01");
+  await expect(
+    page.getByText("No records in this period.").first(),
   ).toBeVisible();
 });

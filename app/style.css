@@ -914,3 +914,11 @@ footer small {
   background-position: center;
   background-repeat: no-repeat;
 }
+select.stagepicker {
+  font-size: 11px;
+  border-radius: 14px;
+  color: #34553d;
+  background: #e8eee4;
+  border-color: transparent;
+  padding: 3px 6px;
+}

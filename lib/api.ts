@@ -15,9 +15,16 @@ export const recordSchema = z.object({
   links: z.array(z.uuid()).max(100).default([]),
 });
 export function checkOrigin(req: Request) {
+  const origin = req.headers.get("origin");
+  if (!origin) return;
+  const url = new URL(origin);
+  // Next can reconstruct the internal request URL with a loopback hostname.
+  // The Host header retains the browser-facing authority, including its port.
+  const host = req.headers.get("host") || new URL(req.url).host;
   if (
-    req.headers.get("origin") &&
-    req.headers.get("origin") !== new URL(req.url).origin
+    url.host !== host ||
+    !["https:", "http:"].includes(url.protocol) ||
+    req.headers.get("sec-fetch-site") === "cross-site"
   )
     throw Error("Origin mismatch.");
 }

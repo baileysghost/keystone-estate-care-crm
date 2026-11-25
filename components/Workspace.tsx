@@ -43,6 +43,9 @@ import {
   type Kind,
 } from "../lib/model";
 import { searchable } from "../lib/view";
+const sectionTitle = (name: string) =>
+  name === "Attorneys & Law Firms" ? "Attorneys" :
+  name === "Probate Intelligence" ? "Probate Leads" : name;
 const nav: [string, LucideIcon][] = [
   ["Overview", LayoutDashboard],
   ["Probate Intelligence", BookUser],
@@ -280,7 +283,7 @@ export default function Workspace() {
               {i === 6 && <div className="navcaption">Operations</div>}
               {i === 10 && <div className="navcaption">Administration</div>}
               <button
-                title={name}
+                title={sectionTitle(name)}
                 aria-current={page === name ? "page" : undefined}
                 className={page === name ? "selected" : ""}
                 onClick={() => go(name)}
@@ -295,7 +298,7 @@ export default function Workspace() {
                       Activity: "Activity History",
                       Leads: "Sales leads",
                     } as Record<string, string>
-                  )[name] || name}
+                  )[name] || sectionTitle(name)}
                 </span>
               </button>
             </div>
@@ -334,7 +337,7 @@ export default function Workspace() {
             <Menu size={19} />
           </button>
           <span className="crumb">
-            Workspace <ChevronRight size={13} /> <b>{page}</b>
+            Workspace <ChevronRight size={13} /> <b>{sectionTitle(page)}</b>
           </span>
           <button
             className="globalsearch"
@@ -390,7 +393,7 @@ export default function Workspace() {
         <div className="content">
           <div className="pagehead">
             <div>
-              <h1>{page === "Overview" ? "Workspace overview" : page}</h1>
+              <h1>{page === "Overview" ? "Workspace overview" : sectionTitle(page)}</h1>
               <p>{subtitles[page]}</p>
             </div>
             {page === "Overview" ? (

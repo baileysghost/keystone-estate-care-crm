@@ -1,0 +1,10 @@
+update keystone.probate_cases set data=(data #>> '{}')::jsonb where jsonb_typeof(data)='string';
+update keystone.probate_cases set score_breakdown=(score_breakdown #>> '{}')::jsonb where jsonb_typeof(score_breakdown)='string';
+update keystone.law_firms set data=(data #>> '{}')::jsonb where jsonb_typeof(data)='string';
+update keystone.attorneys set data=(data #>> '{}')::jsonb where jsonb_typeof(data)='string';
+update keystone.attorneys set staff=(staff #>> '{}')::jsonb where jsonb_typeof(staff)='string';
+update keystone.lead_sources set data=(data #>> '{}')::jsonb where jsonb_typeof(data)='string';
+update keystone.hermes_runs set data=(data #>> '{}')::jsonb where jsonb_typeof(data)='string';
+update keystone.hermes_receipts set response=(response #>> '{}')::jsonb where jsonb_typeof(response)='string';
+update keystone.integration_settings set value=(value #>> '{}')::jsonb where key in ('territory','expansion','sources','weights','enabled') and jsonb_typeof(value)='string';
+insert into keystone.schema_migrations(version) values ('007_hermes_json_objects') on conflict do nothing;

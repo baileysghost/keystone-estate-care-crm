@@ -382,77 +382,95 @@ export default function Intelligence({ page }: { page: string }) {
       .length,
     "Converted clients": rangeCases.filter((c) => c.client_id).length,
   };
-  const table = (rows: Case[]) => (
-    <div className="probate-scroll">
-      <table>
-        <thead>
-          <tr>
-            {[
-              "Select",
-              "Case number",
-              "Discovered",
-              "Filed",
-              "Court",
-              "Property city",
-              "Real estate",
-              "Attorney",
-              "Firm",
-              "Business phone",
-              "Professional email",
-              "Score",
-              "Verification",
-              "Outreach",
-              "Assigned",
-              "Updated",
-            ].map((s) => (
-              <th key={s}>{s}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((c) => {
-            const p = people(c.id)[0];
-            return (
-              <tr key={c.id}>
-                <td>
-                  <input
-                    type="checkbox"
-                    aria-label={"Select " + c.data.case_number}
-                    checked={selected.includes(c.id)}
-                    onChange={() => toggle(c.id)}
-                  />
-                </td>
-                <td>
-                  <button onClick={() => V(c.id)}>{c.data.case_number}</button>{" "}
-                  {!c.reviewed && <small>New</small>}
-                </td>
-                {[
-                  day(c.first_discovered_at),
-                  c.data.filing_date,
-                  c.data.courthouse || c.data.jurisdiction,
-                  c.data.property_city,
-                  c.data.real_estate_status,
-                  p?.full_name,
-                  p?.data.law_firm,
-                  p?.data.business_phone,
-                  p?.data.professional_email,
-                  c.lead_score,
-                  c.data.verification_status,
-                  c.stage,
-                  db.employees.find((e) => e.id === c.assigned_employee_id)
-                    ?.name,
-                  day(c.updated_at),
-                ].map((v, i) => (
-                  <td key={i}>{v ?? "—"}</td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      {!rows.length && <p>No matching probate cases.</p>}
-    </div>
-  );
+  const table = (rows: Case[]) => {
+    const entries = rows.map((c) => {
+      const p = people(c.id)[0];
+      return {
+        c,
+        values: [
+          day(c.first_discovered_at),
+          c.data.filing_date,
+          c.data.courthouse || c.data.jurisdiction,
+          c.data.property_city,
+          c.data.real_estate_status,
+          p?.full_name,
+          p?.data.law_firm,
+          p?.data.business_phone,
+          p?.data.professional_email,
+          c.lead_score,
+          c.data.verification_status,
+          c.stage,
+          db.employees.find((e) => e.id === c.assigned_employee_id)?.name,
+          day(c.updated_at),
+        ],
+      };
+    });
+    const columns = [
+      "Discovered",
+      "Filed",
+      "Court",
+      "Property city",
+      "Real estate",
+      "Attorney",
+      "Firm",
+      "Business phone",
+      "Professional email",
+      "Score",
+      "Verification",
+      "Outreach",
+      "Assigned",
+      "Updated",
+    ]
+      .map((label, index) => ({ label, index }))
+      .filter(({ index }) =>
+        entries.some(
+          ({ values }) => values[index] != null && values[index] !== "",
+        ),
+      );
+    return (
+      <div className="probate-scroll">
+        <table>
+          <thead>
+            <tr>
+              {[
+                "Select",
+                "Case number",
+                ...columns.map(({ label }) => label),
+              ].map((s) => (
+                <th key={s}>{s}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map(({ c, values }) => {
+              return (
+                <tr key={c.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label={"Select " + c.data.case_number}
+                      checked={selected.includes(c.id)}
+                      onChange={() => toggle(c.id)}
+                    />
+                  </td>
+                  <td>
+                    <button onClick={() => V(c.id)}>
+                      {c.data.case_number}
+                    </button>{" "}
+                    {!c.reviewed && <small>New</small>}
+                  </td>
+                  {columns.map(({ index, label }) => (
+                    <td key={label}>{values[index] ?? "—"}</td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {!rows.length && <p>No matching probate cases.</p>}
+      </div>
+    );
+  };
   return (
     <section className="panel probate">
       <div className="probate-controls">

@@ -161,9 +161,18 @@ test("probate intake and billing criteria persist in the lead profile", async ({
   await page.getByRole("button", { name: "New lead", exact: true }).click();
   const name = "Probate intake " + Date.now();
   await page.getByLabel("Name or title").fill(name);
-  await page.getByLabel("Estate name").fill("Example Estate");
-  await page.getByLabel("Probate county").fill("Los Angeles");
-  await page.getByLabel("Billing arrangement").selectOption("Escrow-deferred");
+  await page
+    .getByRole("dialog")
+    .getByLabel("Estate name")
+    .fill("Example Estate");
+  await page
+    .getByRole("dialog")
+    .getByLabel("Probate county")
+    .fill("Los Angeles");
+  await page
+    .getByRole("dialog")
+    .getByLabel("Billing arrangement")
+    .selectOption("Escrow-deferred");
   await page.getByRole("button", { name: "Save lead" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.getByLabel("Search directory").fill(name);

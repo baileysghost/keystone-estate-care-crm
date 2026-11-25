@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 export default function Login() {
   const [email, E] = useState(""),
     [password, P] = useState(""),
+    [activating, setActivating] = useState(false),
     [msg, M] = useState(""),
     [recovery, R] = useState<URLSearchParams | null>(null);
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function Login() {
           refresh: recovery?.get("refresh_token") || undefined,
         }),
       });
-      if (!r.ok) throw Error();
+      if (!r.ok) {const body=await r.json().catch(()=>null); throw Error(action==="activate" ? body?.error || "Account activation failed. Please try again." : "Check your email and password and try again.")}
       if (action === "activate")
         M("Check your email to confirm your account, then sign in.");
       else if (action === "reset")
@@ -47,25 +48,23 @@ export default function Login() {
           "Check your email for a recovery link if your account is authorized.",
         );
       else location.replace("/");
-    } catch {
-      M(
-        "Unable to sign in. Check your credentials or contact your administrator.",
-      );
+    } catch (error) {
+      M(error instanceof Error ? error.message : "Unable to reach the CRM.");
     }
   }
   return (
-    <main style={{ maxWidth: 420, margin: "12vh auto", padding: 24 }}>
+    <main style={{ width:"min(100%, 440px)", margin: "8vh auto", padding: 24 }}>
       <img src="/brand/white.webp" alt="Keystone Estate Care" width="150" />
-      <h1>{recovery ? "Set your password" : "Employee sign-in"}</h1>
+      <h1>{recovery ? "Set your password" : activating ? "Activate your account" : "Employee sign-in"}</h1>
       <form
-        className="panel"
+        className="panel" style={{display:"grid",gap:14,padding:20}}
         onSubmit={(e) => {
           e.preventDefault();
-          void send(recovery ? "recover" : "login");
+          void send(recovery ? "recover" : activating ? "activate" : "login");
         }}
       >
         {!recovery && (
-          <label>
+          <label style={{display:"grid",gap:5}}>
             Work email
             <input
               required
@@ -76,18 +75,18 @@ export default function Login() {
             />
           </label>
         )}
-        <label>
-          {recovery ? "New password (12 characters minimum)" : "Password"}
+        <label style={{display:"grid",gap:5}}>
+          {recovery || activating ? "New password (12 characters minimum)" : "Password"}
           <input
             required
             type="password"
-            minLength={recovery ? 12 : 1}
-            autoComplete={recovery ? "new-password" : "current-password"}
+            minLength={recovery || activating ? 12 : 1}
+            autoComplete={recovery || activating ? "new-password" : "current-password"}
             value={password}
             onChange={(e) => P(e.target.value)}
           />
         </label>
-        <button>{recovery ? "Save password" : "Sign in"}</button>
+        <button>{recovery ? "Save password" : activating ? "Send confirmation email" : "Sign in"}</button>
       </form>
       {!recovery && (
         <button disabled={!email} onClick={() => send("reset")}>
@@ -96,10 +95,9 @@ export default function Login() {
       )}
       {!recovery && (
         <button
-          disabled={!email || password.length < 12}
-          onClick={() => send("activate")}
+          onClick={() => {setActivating(!activating);M("")}}
         >
-          Activate invited account
+          {activating ? "Back to sign in" : "Activate invited account"}
         </button>
       )}
       <p role="status">{msg}</p>

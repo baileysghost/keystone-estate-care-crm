@@ -31,6 +31,7 @@ import { Editor, type Draft } from "./Editor";
 import { Pipeline, Calendar, Timeline } from "./Operations";
 import { Profile } from "./Profile";
 import { Button } from "./ui/button";
+import Intelligence from "./Intelligence";
 import Reports from "./Reports";
 import { Modal } from "./ui/dialog";
 import {
@@ -44,6 +45,10 @@ import {
 import { searchable } from "../lib/view";
 const nav: [string, LucideIcon][] = [
   ["Overview", LayoutDashboard],
+  ["Probate Intelligence", BookUser],
+  ["New Leads", ContactRound],
+  ["Attorneys & Law Firms", UsersRound],
+  ["Hermes Activity", Activity],
   ["Leads", ContactRound],
   ["Sales Pipeline", Columns3],
   ["Contacts", BookUser],
@@ -101,6 +106,10 @@ export default function Workspace() {
   const [dark, theme] = useState(false);
   const refresh = useCallback(async () => {
     const res = await fetch("/api/crm", { cache: "no-store" });
+    if (res.status === 401) {
+      location.assign("/login");
+      throw Error("Employee sign-in required.");
+    }
     const data = await res.json();
     if (!res.ok) throw Error(data.error);
     setDB(data);
@@ -277,14 +286,35 @@ export default function Workspace() {
                 onClick={() => go(name)}
               >
                 <Icon size={17} />
-                <span>{name}</span>
+                <span>
+                  {(
+                    {
+                      Overview: "Dashboard",
+                      Customers: "Clients",
+                      Tasks: "Tasks & Follow-Ups",
+                      Activity: "Activity History",
+                      Leads: "Sales leads",
+                    } as Record<string, string>
+                  )[name] || name}
+                </span>
               </button>
             </div>
           ))}
         </nav>
         <div className="sidebarfoot">
           <span className="demodot" />
-          <span>Internal workspace</span>
+          <button
+            onClick={async () => {
+              await fetch("/api/session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "logout" }),
+              });
+              location.assign("/login");
+            }}
+          >
+            Sign out
+          </button>
         </div>
       </aside>
       <main>
@@ -390,6 +420,9 @@ export default function Workspace() {
               </button>
             ) : null}
           </div>
+          {db && ["Settings", "Overview"].includes(page) && (
+            <Intelligence key={page} page={page} />
+          )}
           {issue ? (
             <section className="panel empty">
               <p role="alert">{issue}</p>
@@ -408,6 +441,13 @@ export default function Workspace() {
               open={open}
               complete={(r) => void update(r, "Completed")}
             />
+          ) : [
+              "Probate Intelligence",
+              "New Leads",
+              "Attorneys & Law Firms",
+              "Hermes Activity",
+            ].includes(page) ? (
+            <Intelligence key={page} page={page} />
           ) : page === "Sales Pipeline" ? (
             <Pipeline db={db} open={open} move={update} />
           ) : page === "Calendar" ? (

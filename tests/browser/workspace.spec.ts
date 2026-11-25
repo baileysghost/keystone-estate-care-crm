@@ -19,7 +19,7 @@ test("create a lead, filter, drag between stages, convert and reload", async ({
   await page.getByLabel("Name or title").fill(name);
   await page.getByRole("button", { name: "Save lead" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByRole("button", { name: "Leads", exact: true }).click();
+  await page.getByRole("button", { name: "Sales leads", exact: true }).click();
   await page.getByLabel("Search directory").fill(name);
   await expect(page.getByRole("row").filter({ hasText: name })).toHaveCount(1);
   await page
@@ -81,7 +81,9 @@ test("mobile navigation, task completion and grouped search", async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Open navigation" }).click();
-  await page.getByRole("button", { name: "Tasks", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Tasks & Follow-Ups", exact: true })
+    .click();
   await page.getByRole("button", { name: "New task", exact: true }).click();
   const title = "QA follow-up " + Date.now();
   await page.getByLabel("Name or title").fill(title);
@@ -99,7 +101,7 @@ test("mobile navigation, task completion and grouped search", async ({
   ).toBeVisible();
 });
 test("CSV lead import, bulk archive, restore and export", async ({ page }) => {
-  await page.getByRole("button", { name: "Leads", exact: true }).click();
+  await page.getByRole("button", { name: "Sales leads", exact: true }).click();
   const name = "CSV household " + Date.now();
   await page.locator("input[type=file]").setInputFiles({
     name: "leads.csv",
@@ -157,7 +159,7 @@ test("probate intake and billing criteria persist in the lead profile", async ({
   await expect(
     page.getByRole("img", { name: "Keystone Estate Care" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Leads", exact: true }).click();
+  await page.getByRole("button", { name: "Sales leads", exact: true }).click();
   await page.getByRole("button", { name: "New lead", exact: true }).click();
   const name = "Probate intake " + Date.now();
   await page.getByLabel("Name or title").fill(name);
@@ -178,4 +180,25 @@ test("probate intake and billing criteria persist in the lead profile", async ({
   await page.getByLabel("Search directory").fill(name);
   await page.getByRole("button", { name: new RegExp(name) }).click();
   await expect(page.getByRole("dialog")).toContainText("Escrow-deferred");
+});
+test("mobile probate inbox opens fictional evidence and run history", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Load fictional examples" }).click();
+  await expect(page.getByText("Saved.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "New Leads", exact: true }).click();
+  await page.getByLabel("Dataset").selectOption("true");
+  await page
+    .getByRole("button", { name: "DEMO-2026-00001", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Score breakdown" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Fictional legal notice" }),
+  ).toBeVisible();
 });

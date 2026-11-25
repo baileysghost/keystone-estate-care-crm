@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
-import { workspaceAccess } from "./lib/workspace-access.mjs";
-export function proxy(request: Request) {
-  return workspaceAccess(request) ?? NextResponse.next();
+export function proxy(req: Request) {
+  if (
+    (process.env.VERCEL ||
+      process.env.DATABASE_URL ||
+      process.env.POSTGRES_URL) &&
+    !/(?:^|;\s*)ks_access=[^;]+/.test(req.headers.get("cookie") || "")
+  )
+    return NextResponse.redirect(new URL("/login", req.url));
+  return NextResponse.next();
 }
-export const config = { matcher: ["/", "/api/:path*"] };
+export const config = { matcher: ["/"] };

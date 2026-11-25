@@ -935,3 +935,65 @@ select.stagepicker {
   height: 38px;
   background: white url("/brand/icon.webp") center/contain no-repeat;
 }
+.probate {
+  margin-block: 1rem;
+  padding: clamp(0.8rem, 2vw, 1.6rem);
+  min-width: 0;
+}
+.probate h2,
+.probate h3 {
+  margin: 1em 0 0.5em;
+}
+.probate-controls,
+.facts,
+.probate-charts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+.facts,
+.probate-charts {
+  align-items: stretch;
+  gap: 1rem;
+  margin-block: 1rem;
+}
+.facts > div,
+.probate-charts > div {
+  flex: 1 1 155px;
+  border-left: 3px solid #b99a60;
+  padding: 0.4rem 0.8rem;
+}
+.facts dt {
+  font-size: 0.8rem;
+}
+.facts dd {
+  margin: 0.25rem 0;
+  overflow-wrap: anywhere;
+}
+.probate-scroll,
+.probate-board {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-block: 1rem;
+}
+.probate-scroll td,
+.probate-scroll th {
+  white-space: nowrap;
+  padding: 0.5rem;
+  text-align: left;
+}
+.probate-board {
+  display: flex;
+  gap: 0.6rem;
+}
+.probate-board section {
+  min-width: 185px;
+  border: 1px solid var(--line, #ddd);
+  padding: 0.6rem;
+  border-radius: 6px;
+}
+.probate-board button {
+  display: block;
+  margin-block: 0.5rem;
+}

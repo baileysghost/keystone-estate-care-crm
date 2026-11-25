@@ -1,4 +1,4 @@
-import { workspaceAccess } from "../../../lib/workspace-access.mjs";
+import { staff, denied } from "../../../lib/staff.mjs";
 import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -21,8 +21,9 @@ function storage() {
   ).storage.from("keystone-demo");
 }
 export async function POST(req: Request) {
-  const denied = workspaceAccess(req);
-  if (denied) return denied;
+  const user = await staff(req);
+  if (!user) return denied();
+  if (user.role !== "administrator") return denied(403);
   try {
     checkOrigin(req);
     const f = await req.formData();
@@ -80,8 +81,9 @@ export async function POST(req: Request) {
   }
 }
 export async function GET(req: Request) {
-  const denied = workspaceAccess(req);
-  if (denied) return denied;
+  const user = await staff(req);
+  if (!user) return denied();
+  if (user.role !== "administrator") return denied(403);
   try {
     const params = new URL(req.url).searchParams;
     const id = z.uuid().parse(params.get("id"));
